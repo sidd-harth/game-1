@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Color Block Game</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        @keyframes clickEffect {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+.click-effect {
+    animation: clickEffect 0.2s;
+}
+        body {
+            margin: 0;
+            font-family: 'Press Start 2P', cursive;
+            background-color: #0f0f1f;
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #fff;
+            text-shadow: 2px 2px #000;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            display: flex;
+            width: 100%;
+            height: 70vh;
+            gap: 20px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .block {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+            user-select: none;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 5%, rgba(255,255,255,0.1) 50%, transparent 95%);
+            pointer-events: none;
+        }
+
+        .block.red {
+            background: linear-gradient(135deg, #ff4444, #aa0000);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5),
+                        inset 0 0 50px rgba(255, 0, 0, 0.3);
+        }
+
+        .block.blue {
+            background: linear-gradient(135deg, #4444ff, #0000aa);
+            box-shadow: 0 0 20px rgba(0, 0, 255, 0.5),
+                        inset 0 0 50px rgba(0, 0, 255, 0.3);
+        }
+
+        .block.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            pointer-events: none;
+            filter: grayscale(70%);
+        }
+
+        .leaderboard {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(25, 25, 35, 0.95);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3),
+                        inset 0 0 20px rgba(0, 255, 255, 0.2);
+            border: 4px solid #444;
+            z-index: 1000;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .leaderboard::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: -1;
+        }
+
+        .leaderboard h2 {
+            color: #ffd700;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            margin-bottom: 1.5rem;
+        }
+
+        .leaderboard table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .leaderboard th, 
+        .leaderboard td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .leaderboard th {
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            background: rgba(0, 0, 0, 0.4);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .leaderboard td {
+            color: #fff;
+            font-size: 0.8rem;
+        }
+
+        .leaderboard .red-team { 
+            color: #ff4444;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+
+        .leaderboard .blue-team { 
+            color: #4444ff;
+            text-shadow: 0 0 10px rgba(0, 0, 255, 0.5);
+        }
+
+        .leaderboard tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .leaderboard tr:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .rank-1 {
+            background: rgba(255, 215, 0, 0.1) !important;
+        }
+
+        .rank-2 {
+            background: rgba(192, 192, 192, 0.1) !important;
+        }
+
+        .rank-3 {
+            background: rgba(205, 127, 50, 0.1) !important;
+        }
+
+        #winnerAnnouncement {
+            text-align: center;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            animation: glow 2s infinite alternate;
+        }
+
+        #winnerAnnouncement h3 {
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            margin: 0 0 1rem 0;
+        }
+
+        #winnerAnnouncement p {
+            color: #fff;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 10px rgba(255, 215, 0, 0.2),
+                           inset 0 0 5px rgba(255, 215, 0, 0.1);
+            }
+            to {
+                box-shadow: 0 0 20px rgba(255, 215, 0, 0.4),
+                           inset 0 0 10px rgba(255, 215, 0, 0.2);
+            }
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 2px solid #444;
+        }
+
+        .game-session {
+            color: #ffd700;
+            font-size: 0.8rem;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .timer, .scoreboard {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px 30px;
+            border-radius: 8px;
+            border: 2px solid #444;
+            margin: 10px;
+            text-align: center;
+        }
+
+        .timer {
+            font-size: 2rem;
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-info">
+        <div class="game-session">Game ID: <span id="gameId">-</span></div>
+        <div class="player-info">Player: <span id="playerInfo">Loading...</span></div>
+    </div>
+    <div class="timer">Time: <span id="timer">30</span>s</div>
+    <div class="scoreboard">
+        Red: <span id="redScore">0</span> | Blue: <span id="blueScore">0</span>
+    </div>
+
+    <div class="game-container">
+        <div class="block red" id="redBlock" onclick="handleClick('red')">Red Team</div>
+        <div class="block blue" id="blueBlock" onclick="handleClick('blue')">Blue Team</div>
+    </div>
+
+    <div class="leaderboard" id="leaderboard">
+        <h2>Game Results</h2>
+        <div id="winnerAnnouncement"></div>
+        <h3>Leaderboard</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Team</th>
+                    <th>Clicks</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboardBody"></tbody>
+        </table>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        
+        // Get player info from localStorage
+        const playerName = localStorage.getItem('playerName');
+        const playerTeam = localStorage.getItem('playerTeam');
+        document.querySelectorAll('.block').forEach(block => {
+    block.addEventListener('click', () => {
+        block.classList.add('click-effect'); // Add animation class
+        setTimeout(() => {
+            block.classList.remove('click-effect'); // Remove animation class after it ends
+        }, 200);
+    });
+});
+        // Update player info display
+        document.getElementById('playerInfo').textContent = 
+            `${playerName} (${playerTeam.charAt(0).toUpperCase() + playerTeam.slice(1)} Team)`;
+        
+        // Disable opposite team's block
+        if (playerTeam === 'red') {
+            document.getElementById('blueBlock').classList.add('disabled');
+        } else if (playerTeam === 'blue') {
+            document.getElementById('redBlock').classList.add('disabled');
+        }
+        
+        // Rejoin team on page load
+        if (playerName && playerTeam) {
+            socket.emit('joinTeam', { name: playerName, team: playerTeam });
+        }
+        
+        function handleClick(team) {
+            if (team === playerTeam) {
+                socket.emit('blockClick', team);
+            }
+        }
+
+        socket.on('gameStarted', (data) => {
+            document.getElementById('gameId').textContent = data.gameId;
+            document.getElementById('leaderboard').style.display = 'none';
+        });
+
+        socket.on('updateCounts', (counts) => {
+            document.getElementById('redScore').textContent = counts.red;
+            document.getElementById('blueScore').textContent = counts.blue;
+        });
+
+        socket.on('updateTimer', (time) => {
+            document.getElementById('timer').textContent = time;
+        });
+
+        socket.on('gameEnded', (result) => {
+            const leaderboard = document.getElementById('leaderboard');
+            const leaderboardBody = document.getElementById('leaderboardBody');
+            const winnerAnnouncement = document.getElementById('winnerAnnouncement');
+            
+            winnerAnnouncement.innerHTML = `
+                <h3>${result.winner} Team Wins!</h3>
+                <p>Final Score - Red: ${result.redCount} | Blue: ${result.blueCount}</p>
+                <br>
+                <p>Game ID: ${result.gameId}</p>
+            `;
+            
+            leaderboardBody.innerHTML = result.leaderboard.map((player, index) => `
+                <tr class="${index < 3 ? 'rank-' + (index + 1) : ''}">
+                    <td>${index + 1}</td>
+                    <td class="${player.team}-team">${player.name}</td>
+                    <td>${player.team.charAt(0).toUpperCase() + player.team.slice(1)}</td>
+                    <td>${player.clicks}</td>
+                </tr>
+            `).join('');
+            
+            leaderboard.style.display = 'block';
+        });
+
+
+    </script>
+</body>
+</html>

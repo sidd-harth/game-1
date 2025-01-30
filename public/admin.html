@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel</title>
+    <style>
+        /* Retro Game Theme - Common Styles */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        body {
+            margin: 0;
+            font-family: 'Press Start 2P', cursive;
+            background-color: #0f0f1f;
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: #fff;
+            text-shadow: 2px 2px #000;
+            overflow-x: hidden;
+            padding: 2rem;
+        }
+
+        .retro-container {
+            background: rgba(25, 25, 35, 0.9);
+            border: 4px solid #444;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2),
+                        inset 0 0 20px rgba(0, 255, 255, 0.1);
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .team-lists {
+            display: flex;
+            justify-content: space-between;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .team-list {
+            flex: 1;
+            padding: 1.5rem;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team-list.red-team {
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.2), rgba(255, 0, 0, 0.1));
+            border: 2px solid #ff4444;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+        }
+
+        .team-list.blue-team {
+            background: linear-gradient(135deg, rgba(0, 0, 255, 0.2), rgba(0, 0, 255, 0.1));
+            border: 2px solid #4444ff;
+            box-shadow: 0 0 15px rgba(0, 0, 255, 0.3);
+        }
+
+        .team-list h3 {
+            color: #fff;
+            text-align: center;
+            margin-top: 0;
+            padding: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .team-list.red-team h3 {
+            text-shadow: 0 0 10px #ff4444;
+        }
+
+        .team-list.blue-team h3 {
+            text-shadow: 0 0 10px #4444ff;
+        }
+
+        .team-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .team-list li {
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
+        }
+
+        .red-team li {
+            background: rgba(255, 0, 0, 0.2);
+            border-left: 3px solid #ff4444;
+        }
+
+        .blue-team li {
+            background: rgba(0, 0, 255, 0.2);
+            border-left: 3px solid #4444ff;
+        }
+
+        .team-list li:hover {
+            transform: translateX(5px);
+        }
+
+        .admin-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .retro-button {
+            background: #4a4a8a;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            padding: 15px 30px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            text-shadow: 2px 2px #000;
+            box-shadow: 0 4px 0 #2a2a4a,
+                        0 0 10px rgba(0, 255, 255, 0.2);
+        }
+
+        .retro-button:hover {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #2a2a4a,
+                        0 0 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .retro-button.red {
+            background: linear-gradient(135deg, #ff4444, #aa0000);
+            box-shadow: 0 4px 0 #800000,
+                        0 0 10px rgba(255, 0, 0, 0.3);
+        }
+
+        .retro-button.green {
+            background: linear-gradient(135deg, #44ff44, #00aa00);
+            box-shadow: 0 4px 0 #008000,
+                        0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .retro-button.blue {
+            background: linear-gradient(135deg, #4444ff, #0000aa);
+            box-shadow: 0 4px 0 #000080,
+                        0 0 10px rgba(0, 0, 255, 0.3);
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="retro-container">
+        <h1 class="retro-title">Admin Control Panel</h1>
+        
+        <div class="team-lists">
+            <div class="team-list red-team">
+                <h3>Red Team</h3>
+                <ul id="redTeam"></ul>
+            </div>
+            <div class="team-list blue-team">
+                <h3>Blue Team</h3>
+                <ul id="blueTeam"></ul>
+            </div>
+        </div>
+
+        <div class="admin-controls">
+            <button class="retro-button green" onclick="startGame()">Start Game</button>
+            <button class="retro-button blue" onclick="restartGame()">Restart Game</button>
+            <button class="retro-button red" onclick="endGame()">End Game</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        
+        function startGame() {
+            socket.emit('startGame');
+        }
+
+        function restartGame() {
+            socket.emit('restartGame');
+        }
+
+        function endGame() {
+            socket.emit('endGame');
+        }
+
+        socket.on('updatePlayers', (players) => {
+            document.getElementById('redTeam').innerHTML = 
+                players.red.map(name => `<li>${name}</li>`).join('');
+            document.getElementById('blueTeam').innerHTML = 
+                players.blue.map(name => `<li>${name}</li>`).join('');
+        });
+    </script>
+</body>
+</html>
