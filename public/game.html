@@ -176,7 +176,28 @@
         .rank-3 {
             background: rgba(205, 127, 50, 0.1) !important;
         }
+        .countdown {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(25, 25, 35, 0.95);
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.3),
+                inset 0 0 20px rgba(0, 255, 255, 0.2);
+    border: 4px solid #444;
+    z-index: 1000;
+    text-align: center;
+    font-size: 2rem;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
 
+.countdown h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
         #winnerAnnouncement {
             text-align: center;
             margin: 1.5rem 0;
@@ -274,22 +295,28 @@
             <tbody id="leaderboardBody"></tbody>
         </table>
     </div>
-
+    <div class="countdown" id="countdown" style="display: none;">
+        <h2>Game Starts In</h2>
+        <div id="countdownTimer">3</div>
+    </div>
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io();
+                const socket = io();
+        let isGameActive = false;
         
         // Get player info from localStorage
         const playerName = localStorage.getItem('playerName');
         const playerTeam = localStorage.getItem('playerTeam');
+
+
         document.querySelectorAll('.block').forEach(block => {
-    block.addEventListener('click', () => {
-        block.classList.add('click-effect'); // Add animation class
-        setTimeout(() => {
-            block.classList.remove('click-effect'); // Remove animation class after it ends
-        }, 200);
-    });
-});
+            block.addEventListener('click', () => {
+                block.classList.add('click-effect'); // Add animation class
+                setTimeout(() => {
+                    block.classList.remove('click-effect'); // Remove animation class after it ends
+                }, 200);
+            });
+        });
         // Update player info display
         document.getElementById('playerInfo').textContent = 
             `${playerName} (${playerTeam.charAt(0).toUpperCase() + playerTeam.slice(1)} Team)`;
@@ -305,18 +332,35 @@
         if (playerName && playerTeam) {
             socket.emit('joinTeam', { name: playerName, team: playerTeam });
         }
-        
-        function handleClick(team) {
-            if (team === playerTeam) {
-                socket.emit('blockClick', team);
-            }
-        }
 
-        socket.on('gameStarted', (data) => {
-            document.getElementById('gameId').textContent = data.gameId;
-            document.getElementById('leaderboard').style.display = 'none';
+         // Handle countdown
+         socket.on('countdown', (countdown) => {
+            const countdownElement = document.getElementById('countdown');
+            const countdownTimer = document.getElementById('countdownTimer');
+            
+            countdownElement.style.display = 'block';
+            countdownTimer.textContent = countdown;
+
+            if (countdown <= 0) {
+                countdownElement.style.display = 'none';
+                isGameActive = true; // Enable clicks after countdown
+            }
         });
 
+
+
+        socket.on('gameStarted', () => {
+            isGameActive = true; // Enable clicks after countdown
+        });
+        function handleClick(team) {
+    if (isGameActive && team === playerTeam) {
+        socket.emit('blockClick', team);
+    }
+}
+socket.on('hideLeaderboard', () => {
+    const leaderboard = document.getElementById('leaderboard');
+    leaderboard.style.display = 'none'; // Hide the leaderboard
+});
         socket.on('updateCounts', (counts) => {
             document.getElementById('redScore').textContent = counts.red;
             document.getElementById('blueScore').textContent = counts.blue;

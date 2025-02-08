@@ -102,11 +102,12 @@ function endGameAndShowResults() {
     // Emit the FULL game result
     io.emit('gameEnded', gameResult); // Include all relevant data
   }
-function startGameTimer() {
+  function startGameTimer() {
     clearGameInterval();
     resetGameState();
-    gameState.isActive = true;
-
+    gameState.isActive = false; // Game is not active during countdown
+    // Emit event to hide the leaderboard
+    io.emit('hideLeaderboard');
     // Broadcast game start with 3-second countdown
     let countdown = 3;
     io.emit('countdown', countdown);
@@ -117,6 +118,7 @@ function startGameTimer() {
 
         if (countdown <= 0) {
             clearInterval(countdownInterval);
+            gameState.isActive = true; // Game is now active
             io.emit('gameStarted', { gameId: gameState.gameId });
 
             // Start the 30-second game timer
