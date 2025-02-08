@@ -53,7 +53,7 @@ function resetGameState() {
     gameState.blueCount = 0;
     gameState.playerClicks = {};
     gameState.timer = 30;
-    gameState.gameId = uuidv4();
+    gameState.gameId = uuidv4(); // Generate a new game ID
 
     // Initialize click counts for all players
     Object.values(gameState.players).flat().forEach(name => {
@@ -119,7 +119,10 @@ function endGameAndShowResults() {
         if (countdown <= 0) {
             clearInterval(countdownInterval);
             gameState.isActive = true; // Game is now active
-            io.emit('gameStarted', { gameId: gameState.gameId });
+            io.emit('gameStarted', { 
+                gameId: gameState.gameId, 
+                timer: gameState.timer 
+            });
 
             // Start the 30-second game timer
             gameState.interval = setInterval(() => {

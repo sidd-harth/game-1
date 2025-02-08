@@ -248,6 +248,12 @@
             text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
         }
 
+        .player-info {
+            color: #ffd700;
+            font-size: 0.8rem;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
         .timer, .scoreboard {
             background: rgba(0, 0, 0, 0.5);
             padding: 15px 30px;
@@ -349,9 +355,10 @@
 
 
 
-        socket.on('gameStarted', () => {
-            isGameActive = true; // Enable clicks after countdown
-        });
+        socket.on('gameStarted', (data) => {
+    isGameActive = true; // Enable clicks after countdown
+    document.getElementById('gameId').textContent = data.gameId; // Update game ID display
+});
         function handleClick(team) {
     if (isGameActive && team === playerTeam) {
         socket.emit('blockClick', team);
